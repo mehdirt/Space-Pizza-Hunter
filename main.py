@@ -1,5 +1,6 @@
 import curses
 import random
+import time
 from typing import Tuple
 
 # TODO: Remove hardcodes
@@ -16,9 +17,10 @@ stdscr.nodelay(True) # Program won't wait for user to press any key
 maxl = curses.LINES - 1
 maxc = curses.COLS - 1
 
-# Initializing game variables
+# Game variables
 world = []
-food = []
+foods = []
+enemies = []
 player_l = player_c = 0
 score = 0
 
@@ -33,7 +35,8 @@ def random_place() -> Tuple[int, int]:
     return a, b
 
 def init() -> None:
-    """"""
+    """Initialize game's variables."""
+
     global player_l, player_c
     # Initializing the world with obstacles and empty spaces
     for i in range(-1, maxl+1):
@@ -45,23 +48,35 @@ def init() -> None:
     for i in range(10):
         fl, fc = random_place() # Food cordinates
         fa = random.randint(1000, 10000) # Food age
-        food.append((fl, fc, fa))
+        foods.append((fl, fc, fa))
+    
+    # Initializing enemies coordinates
+    for i in range(3):
+        el, ec = random_place()
+        enemies.append((el, ec))
+
     # Initializing player coordinate        
     player_l, player_c = random_place()
 
 
 
 def draw() -> None:
-    """"""
-    # Drawing the world wiht its obstacles and empty spaces
+    """Draw game's features."""
+
+    # Drawing the world with its obstacles and empty spaces
     for i in range(maxl):
         for j in range(maxc):
             stdscr.addch(i, j, world[i][j])
     stdscr.addstr(1, 1, f"Score: {score}")
     # Drawing the foods
-    for f in food:
-        fl, fc, fa = f
+    for food in foods:
+        fl, fc, fa = food
         stdscr.addch(fl, fc, '*')
+
+    # Drawing enemies
+    for enemy in enemies:
+        el, ec = enemy
+        stdscr.addch(el, ec, 'E')
 
     # Drawing the player
     stdscr.addch(player_l, player_c, 'X')
@@ -79,6 +94,20 @@ def obstacle(x: int, y: int) -> bool:
     """Check if there is an obstacle in the given coordinates."""
     global world
     return world[x][y] == '.'
+
+def get_close(enemy_x, enemy_y, player_x, player_y):
+    """"""
+    if enemy_x > player_l:
+        enemy_x -= 1
+    elif enemy_x < player_l:
+        enemy_x += 1
+
+    if enemy_y > player_c:
+        enemy_y -= 1
+    elif enemy_y < player_c:
+        enemy_y += 1  
+
+    return enemy_x, enemy_y
 
 def move(char: str) -> None:
     """Get one of the 'asdw' keys and move toward the corresponding direction."""
@@ -104,14 +133,35 @@ def move(char: str) -> None:
 def cheack_food() -> None:
     """Check if player reached any food. Generate new food on screen if it was true."""
     global score
-    for i in range(len(food)):
-        fl, fc, fa = food[i]
+    for i in range(len(foods)):
+        fl, fc, fa = foods[i]
         if fl == player_l and fc == player_c:
             score += 10
             # Making new food on the world
             nfl, nfc = random_place()
             nfa = random.randint(1000, 10000)
-            food[i] = (nfl, nfc, nfa)
+            foods[i] = (nfl, nfc, nfa)
+
+def move_enemy():
+    """Move enemies on the screen."""
+    global playing
+    for i in range(len(enemies)):
+        el, ec = enemies[i]
+        if random.random() > 0.9:
+            el, ec = get_close(el, ec, player_l, player_c)
+            # el += random.choice([0, 1, -1])
+            # ec += random.choice([0, 1, -1])
+            el = in_range(el, 0, maxl - 1)
+            ec = in_range(ec, 0, maxc - 1)
+            enemies[i] = (el, ec)
+        time.sleep(0.02)
+
+        if el == player_l and ec == player_c:
+            stdscr.addstr(maxl//2, maxc//2, "YOU DIED!")
+            stdscr.refresh()
+            time.sleep(3)
+            playing = False
+    
 
 # Starting the game
 init()
@@ -127,8 +177,13 @@ while playing:
     elif c == 'q':
         playing = False
     cheack_food()
+    move_enemy()
     draw()
 
-# Clear the screen
+# Quiting the game
+stdscr.addstr(maxl//2, maxc//2, "Thanks for Playing!")
+stdscr.refresh()
+time.sleep(2)
+
 stdscr.clear()
 stdscr.refresh()
