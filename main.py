@@ -4,9 +4,13 @@ import time
 from typing import Tuple
 
 # TODO: Remove hardcodes
+
+testing = True
+food_age = 500
+food_number = 10
+
 # initializing curses
 stdscr = curses.initscr()
-
 # Configuration
 curses.noecho() # Run noecho() to turn off automatic echoing of keys to the screen
 curses.cbreak() # Enable cbreak mode
@@ -34,7 +38,7 @@ def random_place() -> Tuple[int, int]:
 
     return a, b
 
-def init() -> None:
+def init() -> None: # TODO: Convert the snippet codes here to functions + Handle their Hardcodings
     """Initialize game's variables."""
 
     global player_l, player_c
@@ -45,9 +49,9 @@ def init() -> None:
             world[i].append(' ' if random.random() > 0.03 else '.')
     
     # Initializing foods coordinates
-    for i in range(10):
+    for i in range(food_number):
         fl, fc = random_place() # Food cordinates
-        fa = random.randint(1000, 10000) # Food age
+        fa = random.randint(food_age, food_age * 5) # Food age
         foods.append((fl, fc, fa))
     
     # Initializing enemies coordinates
@@ -130,17 +134,25 @@ def move(char: str) -> None:
     player_l = in_range(player_l, 0, maxl - 1)
     player_c = in_range(player_c, 0, maxc - 1)
 
-def cheack_food() -> None:
+def check_food() -> None:
     """Check if player reached any food. Generate new food on screen if it was true."""
     global score
     for i in range(len(foods)):
         fl, fc, fa = foods[i]
+        # Food spoiling (Age reduction)
+        fa -= 10
+        # Check if player catched a food
         if fl == player_l and fc == player_c:
             score += 10
             # Making new food on the world
-            nfl, nfc = random_place()
-            nfa = random.randint(1000, 10000)
-            foods[i] = (nfl, nfc, nfa)
+            fl, fc = random_place()
+            fa = random.randint(food_age, food_age * 5)
+        if fa <= 0:
+            fl, fc = random_place()
+            fa = random.randint(food_age, food_age * 5)
+        
+        foods[i] = (fl, fc, fa)
+    
 
 def move_enemy():
     """Move enemies on the screen."""
@@ -156,7 +168,7 @@ def move_enemy():
             enemies[i] = (el, ec)
         time.sleep(0.02)
 
-        if el == player_l and ec == player_c:
+        if el == player_l and ec == player_c and not testing:
             stdscr.addstr(maxl//2, maxc//2, "YOU DIED!")
             stdscr.refresh()
             time.sleep(3)
@@ -176,7 +188,7 @@ while playing:
         move(c)
     elif c == 'q':
         playing = False
-    cheack_food()
+    check_food()
     move_enemy()
     draw()
 
