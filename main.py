@@ -5,9 +5,13 @@ from typing import Tuple
 
 # TODO: Remove hardcodes
 
-testing = True
+testing = False
+
 food_age = 500
 food_number = 10
+player_char = '🛩️'
+food_char = '🍕'
+enemy_char = '👽'
 
 # initializing curses
 stdscr = curses.initscr()
@@ -16,6 +20,7 @@ curses.noecho() # Run noecho() to turn off automatic echoing of keys to the scre
 curses.cbreak() # Enable cbreak mode
 stdscr.keypad(True) # Enable keypad mode
 stdscr.nodelay(True) # Program won't wait for user to press any key
+curses.curs_set(False) # Romoving Curser
 
 # Get maximum values of the screen columns and rows
 maxl = curses.LINES - 1
@@ -75,15 +80,15 @@ def draw() -> None:
     # Drawing the foods
     for food in foods:
         fl, fc, fa = food
-        stdscr.addch(fl, fc, '*')
+        stdscr.addch(fl, fc, food_char)
 
     # Drawing enemies
     for enemy in enemies:
         el, ec = enemy
-        stdscr.addch(el, ec, 'E')
+        stdscr.addch(el, ec, enemy_char)
 
     # Drawing the player
-    stdscr.addch(player_l, player_c, 'X')
+    stdscr.addstr(player_l, player_c, player_char)
     stdscr.refresh()
 
 def in_range(a: int, min: int, max: int) -> int:
