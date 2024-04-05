@@ -2,18 +2,17 @@ import curses
 import random
 import time
 from typing import Tuple
-
-# TODO: Remove hardcodes
+from decouple import config
 
 testing = False
+# Get environment variables
+FOOD_AGE = config('FOOD_AGE')
+FOOD_NUMBER = config('FOOD_NUMBER')
+PLAYER_CHAR = config('PLAYER_CHAR')
+FOOD_CHAR = config('FOOD_CHAR')
+ENEMY_CHAR = config('ENEMY_CHAR')
 
-food_age = 500
-food_number = 10
-player_char = '🛩️'
-food_char = '🍕'
-enemy_char = '👽'
-
-# initializing curses
+# Initializing curses
 stdscr = curses.initscr()
 # Configuration
 curses.noecho() # Run noecho() to turn off automatic echoing of keys to the screen
@@ -54,9 +53,9 @@ def init() -> None: # TODO: Convert the snippet codes here to functions + Handle
             world[i].append(' ' if random.random() > 0.03 else '.')
     
     # Initializing foods coordinates
-    for i in range(food_number):
+    for i in range(FOOD_NUMBER):
         fl, fc = random_place() # Food cordinates
-        fa = random.randint(food_age, food_age * 5) # Food age
+        fa = random.randint(FOOD_AGE, FOOD_AGE * 5) # Food age
         foods.append((fl, fc, fa))
     
     # Initializing enemies coordinates
@@ -80,15 +79,15 @@ def draw() -> None:
     # Drawing the foods
     for food in foods:
         fl, fc, fa = food
-        stdscr.addch(fl, fc, food_char)
+        stdscr.addch(fl, fc, FOOD_CHAR)
 
     # Drawing enemies
     for enemy in enemies:
         el, ec = enemy
-        stdscr.addch(el, ec, enemy_char)
+        stdscr.addch(el, ec, ENEMY_CHAR)
 
     # Drawing the player
-    stdscr.addstr(player_l, player_c, player_char)
+    stdscr.addstr(player_l, player_c, PLAYER_CHAR)
     stdscr.refresh()
 
 def in_range(a: int, min: int, max: int) -> int:
@@ -151,10 +150,10 @@ def check_food() -> None:
             score += 10
             # Making new food on the world
             fl, fc = random_place()
-            fa = random.randint(food_age, food_age * 5)
+            fa = random.randint(FOOD_AGE, FOOD_AGE * 5)
         if fa <= 0:
             fl, fc = random_place()
-            fa = random.randint(food_age, food_age * 5)
+            fa = random.randint(FOOD_AGE, FOOD_AGE * 5)
         
         foods[i] = (fl, fc, fa)
     
